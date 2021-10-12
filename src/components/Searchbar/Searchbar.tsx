@@ -1,4 +1,5 @@
 import React, { Component } from "react";
+import { ImSearch } from "react-icons/im";
 import S from "./Searchbar.module.css";
 
 export default class Searchbar extends Component {
@@ -7,6 +8,7 @@ export default class Searchbar extends Component {
       <header className={S.Searchbar}>
         <form className={S.SearchForm}>
           <button type="submit" className={S.Button}>
+            <ImSearch />
             <span className={S.ButtonLabel}>Search</span>
           </button>
 
