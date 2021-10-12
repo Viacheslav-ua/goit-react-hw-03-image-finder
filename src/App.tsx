@@ -1,12 +1,20 @@
-import React from 'react';
-import './App.css';
+import React, { Component } from "react";
+import "./App.css";
+import ImageGallery from "./components/ImageGallery";
+import ImageGalleryItem from "./components/ImageGalleryItem";
+import Searchbar from "./components/Searchbar";
 
-function App() {
-  return (
-    <div className="App">
-      hello
-    </div>
-  );
+class App extends Component {
+  render() {
+    return (
+      <>
+        <Searchbar />
+        <ImageGallery>
+          <ImageGalleryItem />
+        </ImageGallery>
+      </>
+    );
+  }
 }
 
 export default App;
