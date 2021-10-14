@@ -1,12 +1,16 @@
-import { type } from "os";
 import React, { Component } from "react";
-import { ToastContainer } from 'react-toastify';
+import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import "./App.css";
+// import "./App.css";
+import S from "./App.module.css"
+import "react-loader-spinner/dist/loader/css/react-spinner-loader.css";
+
 import ImageGallery from "./components/ImageGallery";
 import ImageGalleryItem from "./components/ImageGalleryItem";
 import Searchbar from "./components/Searchbar";
-
+import Button from "./components/Button";
+import Modal from "./components/Modal"
+import Loader from "./components/Loader"
 type Picture = {
   id: number;
   webformatURL: string;
@@ -17,26 +21,27 @@ interface StateTypes {
   pictures: Picture[];
   keyword: string;
   page: number;
+  largeURL: string;
   loading: boolean;
+  showModal: boolean;
 }
+
 class App extends Component {
   state: StateTypes = {
     pictures: [],
     keyword: "",
     page: 1,
+    largeURL: "",
     loading: false,
+    showModal: false,
   };
 
-  componentDidMount() {
-    console.log('DidMount')
-  }
-
   componentDidUpdate(prevProps: any, prevState: StateTypes) {
-    if(prevState.keyword !== this.state.keyword ||
-      prevState.page !== this.state.page){
+    if (prevState.keyword !== this.state.keyword ||
+      prevState.page !== this.state.page) {
       this.responseAPI(this.state.keyword, this.state.page)
     }
-    
+
   }
 
   responseAPI = (keyword: string, page: number) => {
@@ -46,9 +51,20 @@ class App extends Component {
     fetch(
       `${BASE_URL}?q=${keyword}&page=${page}&key=${API_KEY}&image_type=photo&orientation=horizontal&per_page=12`
     )
-      .then((res) => res.json())
+      .then(res => res.json())
+      .then(res => {
+
+        if (res.totalHits === 0) {
+          return Promise.reject(new Error('No images matching the search string'))
+        }
+        return res
+      })
+
       .then((res) => this.getPictures(res))
-      .finally(() => this.setState({ loading: false }));
+      .catch(err => {
+        toast.error(err.message)
+      })
+      .finally(() => this.setState({ loading: false }))
   };
 
   getPictures = (obj: any) => {
@@ -59,9 +75,9 @@ class App extends Component {
         largeImageURL: item.largeImageURL,
       };
     });
-    
-    this.setState((prevState: StateTypes) => ({pictures: [...prevState.pictures, ...arrPictures]}));
-    
+
+    this.setState((prevState: StateTypes) => ({ pictures: [...prevState.pictures, ...arrPictures] }));
+
     window.scrollTo({
       top: document.documentElement.scrollHeight,
       behavior: 'smooth',
@@ -72,31 +88,52 @@ class App extends Component {
     this.setState({
       keyword: str,
       page: 1,
-      pictures: [], 
+      pictures: [],
     });
   }
 
   onLoadMore = () => {
-    this.setState((prevState: StateTypes) => ({  page: prevState.page + 1 }));
+    this.setState((prevState: StateTypes) => ({ page: prevState.page + 1 }));
+  }
+
+  toggleModal = (): void => {
+    this.setState(({ showModal }: StateTypes) => ({
+      showModal: !showModal,
+    }));
+  };
+
+  openModalPicture = (url: string) => {
+    this.setState({ largeURL: url, showModal: true })
   }
 
   render() {
     return (
-      <div className="App">
-        <Searchbar onSubmit={this.setKeyword}/>
+      <div className={S.App}>
+        <Searchbar onSubmit={this.setKeyword} />
         
-        <ImageGallery>
-          {this.state.loading && <p>Loading...</p>}
+        <ImageGallery >
+          {this.state.loading && <Loader />}
           {this.state.pictures.map((item: Picture) => (
-            <ImageGalleryItem key={item.id} webformatURL={item.webformatURL} />
+            <ImageGalleryItem
+              key={item.id}
+              largeImageURL={item.largeImageURL}
+              webformatURL={item.webformatURL}
+              openModal={this.openModalPicture} />
           ))}
-          
         </ImageGallery>
-        <button type="button" onClick={this.onLoadMore} className="Button">Load more</button>
-        <ToastContainer autoClose={3000}/>
+
+        {this.state.pictures.length >= 12 && <Button onLoadMore={this.onLoadMore} />}
+        
+        {this.state.showModal && (
+          <Modal onClose={this.toggleModal}>
+            <img src={this.state.largeURL} alt="" />
+          </Modal>
+          
+        )}
+
+        <ToastContainer autoClose={3000} />
       </div>
     );
   }
 }
-
 export default App;
