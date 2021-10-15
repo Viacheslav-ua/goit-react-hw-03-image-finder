@@ -122,7 +122,8 @@ class App extends Component {
           ))}
         </ImageGallery>
 
-        {this.state.pictures.length >= 12 && <Button onLoadMore={this.onLoadMore} />}
+        {(this.state.pictures.length % 12 === 0 
+          && this.state.pictures.length !== 0 ) && <Button onLoadMore={this.onLoadMore} />}
         
         {this.state.showModal && (
           <Modal onClose={this.toggleModal}>
