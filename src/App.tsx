@@ -1,7 +1,6 @@
 import React, { Component } from "react";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-// import "./App.css";
 import S from "./App.module.css"
 import "react-loader-spinner/dist/loader/css/react-spinner-loader.css";
 
@@ -37,11 +36,19 @@ class App extends Component {
   };
 
   componentDidUpdate(prevProps: any, prevState: StateTypes) {
-    if (prevState.keyword !== this.state.keyword ||
-      prevState.page !== this.state.page) {
-      this.responseAPI(this.state.keyword, this.state.page)
+    if (prevState.keyword !== this.state.keyword 
+      || prevState.page !== this.state.page) {
+            this.responseAPI(this.state.keyword, this.state.page)
     }
 
+    if (prevState.pictures !== this.state.pictures) {
+      if(prevState.pictures.length !== 0) {
+        window.scrollTo({
+        top: document.documentElement.scrollHeight,
+        behavior: 'smooth',
+        });
+      }
+    }
   }
 
   responseAPI = (keyword: string, page: number) => {
@@ -76,11 +83,8 @@ class App extends Component {
       };
     });
 
-    this.setState((prevState: StateTypes) => ({ pictures: [...prevState.pictures, ...arrPictures] }));
-
-    window.scrollTo({
-      top: document.documentElement.scrollHeight,
-      behavior: 'smooth',
+    this.setState((prevState: StateTypes) => {
+    return { pictures: [...prevState.pictures, ...arrPictures] }
     });
   };
 
@@ -111,8 +115,8 @@ class App extends Component {
       <div className={S.App}>
         <Searchbar onSubmit={this.setKeyword} />
         
+        {this.state.loading && <Loader />}
         <ImageGallery >
-          {this.state.loading && <Loader />}
           {this.state.pictures.map((item: Picture) => (
             <ImageGalleryItem
               key={item.id}
@@ -121,9 +125,8 @@ class App extends Component {
               openModal={this.openModalPicture} />
           ))}
         </ImageGallery>
-
         {(this.state.pictures.length % 12 === 0 
-          && this.state.pictures.length !== 0 ) && <Button onLoadMore={this.onLoadMore} />}
+          && this.state.pictures.length !== 0) && <Button onLoadMore={this.onLoadMore} />}
         
         {this.state.showModal && (
           <Modal onClose={this.toggleModal}>
